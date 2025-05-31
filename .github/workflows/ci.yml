@@ -15,15 +15,8 @@ jobs:
     strategy:
       matrix:
         java: [8, 11, 17, 21]
-        gradle: [8.0, 8.14]
-        exclude:
-          # Java 8 is not supported by Gradle 8.x
-          - java: 8
-            gradle: 8.0
-          - java: 8
-            gradle: 8.14
 
-    name: Test with Java ${{ matrix.java }} and Gradle ${{ matrix.gradle }}
+    name: Test with Java ${{ matrix.java }}
     
     steps:
     - name: Checkout code
@@ -38,10 +31,9 @@ jobs:
         java-version: ${{ matrix.java }}
         distribution: 'corretto'
     
-    - name: Setup Gradle ${{ matrix.gradle }}
+    - name: Setup Gradle
       uses: gradle/actions/setup-gradle@8379f6a1328ee0e06e2bb424dadb7b159856a326 # v4.4.0
       with:
-        gradle-version: ${{ matrix.gradle }}
         cache-read-only: ${{ github.ref != 'refs/heads/main' }}
     
     - name: Grant execute permission for gradlew
@@ -54,23 +46,23 @@ jobs:
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       if: always()
       with:
-        name: test-reports-java${{ matrix.java }}-gradle${{ matrix.gradle }}
+        name: test-reports-java${{ matrix.java }}
         path: |
           build/reports/ktlint/
           build/reports/detekt/
           build/reports/jacoco/
           build/reports/tests/test/
-        retention-days: ${{ matrix.java == 17 && matrix.gradle == '8.14' && 30 || 7 }}
+        retention-days: ${{ matrix.java == 17 && 30 || 7 }}
         
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action@3a74b2957438d0b6e2e61d67b05318aa25c9e6c6 # v2.20.0
       if: always()
       with:
         files: build/test-results/test/*.xml
-        check_name: "Test Results (Java ${{ matrix.java }}, Gradle ${{ matrix.gradle }})"
+        check_name: "Test Results (Java ${{ matrix.java }})"
 
     - name: Generate coverage summary
-      if: always() && matrix.java == 17 && matrix.gradle == '8.14'
+      if: always() && matrix.java == 17
       run: |
         if [ -f "build/reports/jacoco/test/jacocoTestReport.xml" ]; then
           echo "COVERAGE_REPORT_EXISTS=true" >> $GITHUB_ENV
@@ -82,7 +74,7 @@ jobs:
         fi
     
     - name: Comment PR with quality results
-      if: github.event_name == 'pull_request' && always() && matrix.java == 17 && matrix.gradle == '8.14'
+      if: github.event_name == 'pull_request' && always() && matrix.java == 17
       uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
       with:
         script: |
