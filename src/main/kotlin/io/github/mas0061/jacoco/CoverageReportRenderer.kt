@@ -7,9 +7,10 @@ import java.util.Locale
  */
 class CoverageReportRenderer {
     companion object {
-        private const val TABLE_WIDTH = 80
+        private const val TABLE_WIDTH = 82 // 50 + 1 + 15 + 1 + 15 = 82
         private const val CLASS_COLUMN_WIDTH = 50
         private const val COVERAGE_COLUMN_WIDTH = 15
+        private const val TOTAL_CLASS_NAME = "Total"
     }
 
     /**
@@ -47,7 +48,7 @@ class CoverageReportRenderer {
 
     private fun printDataRows(data: List<CoverageRow>) {
         for (row in data) {
-            val displayName = if (row.className == "Total") "TOTAL" else row.fullClassName
+            val displayName = if (row.className == TOTAL_CLASS_NAME) "TOTAL" else row.fullClassName
             val instructionCoverage = String.format(Locale.US, "%.2f", row.instructionCoverage)
             val branchCoverage = String.format(Locale.US, "%.2f", row.branchCoverage)
 

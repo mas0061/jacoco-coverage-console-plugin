@@ -20,8 +20,8 @@ This is a Gradle plugin project for displaying JaCoCo coverage reports in consol
 ## Architecture Patterns
 
 - **Plugin Class**: `JacocoCoverageConsolePlugin` - Main plugin entry point
-- **Extension Class**: `JacocoCoverageConsoleExtension` - Configuration DSL
-- **Task Class**: `JacocoCoverageConsoleTask` - Main functionality
+- **Extension Class**: `JacocoCoverageExtension` - Configuration DSL
+- **Task Class**: `JacocoCoverageTask` - Main functionality
 - **Data Classes**: Use for CSV parsing and report data structures
 - **Utility Functions**: Keep in separate utility classes
 
