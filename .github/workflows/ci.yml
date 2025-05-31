@@ -72,49 +72,34 @@ jobs:
         else
           echo "COVERAGE_REPORT_EXISTS=false" >> $GITHUB_ENV
         fi
+
+    - name: Check detekt results
+      id: detekt_check
+      if: always() && matrix.java == 17
+      run: |
+        if [ -f "build/reports/detekt/detekt.txt" ]; then
+          if grep -q "Issues found:" build/reports/detekt/detekt.txt; then
+            echo "status=❌ **detekt:** Issues found" >> $GITHUB_OUTPUT
+          else
+            echo "status=✅ **detekt:** No issues found" >> $GITHUB_OUTPUT
+          fi
+        else
+          echo "status=⚠️ **detekt:** Report not found" >> $GITHUB_OUTPUT
+        fi
     
     - name: Comment PR with quality results
       if: github.event_name == 'pull_request' && always() && matrix.java == 17
-      uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+      uses: marocchino/sticky-pull-request-comment@67d0dec7b07ed060a405f9b2a64b8ab319fdd7db # v2.9.2
       with:
-        script: |
-          const fs = require('fs');
-          
-          let comment = '## 🔍 Code Quality Report\n\n';
-          
-          // Check detekt results
-          try {
-            const detektReport = fs.readFileSync('build/reports/detekt/detekt.txt', 'utf8');
-            const issueCount = (detektReport.match(/Issues found:/g) || []).length;
-            if (issueCount > 0) {
-              comment += '❌ **detekt:** Issues found\n';
-            } else {
-              comment += '✅ **detekt:** No issues found\n';
-            }
-          } catch (e) {
-            comment += '⚠️ **detekt:** Report not found\n';
-          }
-          
-          // Check ktlint results
-          comment += '✅ **ktlint:** Code style check completed\n';
-          
-          // Add coverage info if available
-          const coverageExists = process.env.COVERAGE_REPORT_EXISTS === 'true';
-          if (coverageExists) {
-            const coverage = parseFloat(process.env.COVERAGE_PERCENTAGE || '0').toFixed(1);
-            comment += `📊 **Test Coverage:** ${coverage}%\n`;
-          }
-          
-          comment += '\n📁 **Artifacts uploaded:**\n';
-          comment += '- Quality reports (ktlint, detekt)\n';
-          if (coverageExists) {
-            comment += '- Test coverage reports\n';
-          }
-          comment += '- Test results\n';
-          
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: comment
-          });
+        header: quality-report
+        message: |
+          ## 🔍 Code Quality Report
+
+          ${{ steps.detekt_check.outputs.status }}
+          ✅ **ktlint:** Code style check completed
+          ${{ env.COVERAGE_REPORT_EXISTS == 'true' && format('📊 **Test Coverage:** {0}%', env.COVERAGE_PERCENTAGE) || '' }}
+
+          📁 **Artifacts uploaded:**
+          - Quality reports (ktlint, detekt)
+          ${{ env.COVERAGE_REPORT_EXISTS == 'true' && '- Test coverage reports' || '' }}
+          - Test results
