@@ -2,6 +2,7 @@ plugins {
     `kotlin-dsl`
     `java-gradle-plugin`
     `maven-publish`
+    jacoco
     id("com.gradle.plugin-publish") version "1.2.1"
     id("org.jlleitschuh.gradle.ktlint") version "12.1.0"
     id("io.gitlab.arturbosch.detekt") version "1.23.4"
@@ -44,6 +45,21 @@ gradlePlugin {
 
 repositories {
     mavenCentral()
+}
+
+// JaCoCo設定
+jacoco {
+    toolVersion = "0.8.8"
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+        csv.required.set(true)
+    }
 }
 
 // ktlint設定
