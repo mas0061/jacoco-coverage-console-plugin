@@ -3,7 +3,7 @@ plugins {
     `java-gradle-plugin`
     `maven-publish`
     jacoco
-    id("com.gradle.plugin-publish") version "1.2.1"
+    id("com.gradle.plugin-publish") version "1.3.1"
     id("org.jlleitschuh.gradle.ktlint") version "12.3.0"
     id("io.gitlab.arturbosch.detekt") version "1.23.8"
 }
