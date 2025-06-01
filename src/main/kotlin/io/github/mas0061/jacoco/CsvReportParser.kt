@@ -45,8 +45,7 @@ class CsvReportParser {
     }
 
     fun parse(csvFile: java.io.File): List<CoverageRow> {
-        require(csvFile.exists()) { "CSV file not found: ${csvFile.absolutePath}" }
-        require(csvFile.canRead()) { "CSV file is not readable: ${csvFile.absolutePath}" }
+        validateFileAccess(csvFile)
 
         val lines = csvFile.readLines()
         require(lines.isNotEmpty()) { "CSV file is empty: ${csvFile.absolutePath}" }
@@ -59,13 +58,18 @@ class CsvReportParser {
             .mapIndexed { index, line ->
                 try {
                     parseLine(line)
-                } catch (e: Exception) {
+                } catch (e: NumberFormatException) {
                     throw IllegalArgumentException(
                         "Failed to parse line ${index + 2} in ${csvFile.name}: ${e.message}",
                         e,
                     )
                 }
             }
+    }
+
+    private fun validateFileAccess(csvFile: java.io.File) {
+        require(csvFile.exists()) { "CSV file not found: ${csvFile.absolutePath}" }
+        require(csvFile.canRead()) { "CSV file is not readable: ${csvFile.absolutePath}" }
     }
 
     private fun validateHeader(headerLine: String) {
@@ -87,25 +91,21 @@ class CsvReportParser {
             "Invalid CSV format: expected $EXPECTED_COLUMN_COUNT columns, got ${columns.size}"
         }
 
-        return try {
-            CoverageRow(
-                group = columns[0].trim(),
-                packageName = columns[1].trim(),
-                className = columns[2].trim(),
-                instructionMissed = parseIntColumn(columns[3], "INSTRUCTION_MISSED"),
-                instructionCovered = parseIntColumn(columns[4], "INSTRUCTION_COVERED"),
-                branchMissed = parseIntColumn(columns[5], "BRANCH_MISSED"),
-                branchCovered = parseIntColumn(columns[6], "BRANCH_COVERED"),
-                lineMissed = parseIntColumn(columns[7], "LINE_MISSED"),
-                lineCovered = parseIntColumn(columns[8], "LINE_COVERED"),
-                complexityMissed = parseIntColumn(columns[9], "COMPLEXITY_MISSED"),
-                complexityCovered = parseIntColumn(columns[10], "COMPLEXITY_COVERED"),
-                methodMissed = parseIntColumn(columns[11], "METHOD_MISSED"),
-                methodCovered = parseIntColumn(columns[12], "METHOD_COVERED"),
-            )
-        } catch (e: Exception) {
-            throw IllegalArgumentException("Invalid CSV data format in line: $line", e)
-        }
+        return CoverageRow(
+            group = columns[0].trim(),
+            packageName = columns[1].trim(),
+            className = columns[2].trim(),
+            instructionMissed = parseIntColumn(columns[3], "INSTRUCTION_MISSED"),
+            instructionCovered = parseIntColumn(columns[4], "INSTRUCTION_COVERED"),
+            branchMissed = parseIntColumn(columns[5], "BRANCH_MISSED"),
+            branchCovered = parseIntColumn(columns[6], "BRANCH_COVERED"),
+            lineMissed = parseIntColumn(columns[7], "LINE_MISSED"),
+            lineCovered = parseIntColumn(columns[8], "LINE_COVERED"),
+            complexityMissed = parseIntColumn(columns[9], "COMPLEXITY_MISSED"),
+            complexityCovered = parseIntColumn(columns[10], "COMPLEXITY_COVERED"),
+            methodMissed = parseIntColumn(columns[11], "METHOD_MISSED"),
+            methodCovered = parseIntColumn(columns[12], "METHOD_COVERED"),
+        )
     }
 
     /**
@@ -113,7 +113,7 @@ class CsvReportParser {
      */
     private fun parseCSVLine(line: String): List<String> {
         val result = mutableListOf<String>()
-        var current = StringBuilder()
+        val current = StringBuilder()
         var inQuotes = false
         var i = 0
 
@@ -134,7 +134,7 @@ class CsvReportParser {
                 }
                 char == ',' && !inQuotes -> {
                     result.add(current.toString())
-                    current = StringBuilder()
+                    current.clear()
                 }
                 else -> {
                     current.append(char)
