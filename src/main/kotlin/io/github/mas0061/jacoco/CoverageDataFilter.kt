@@ -4,6 +4,10 @@ package io.github.mas0061.jacoco
  * カバレッジデータのフィルタリングを担当するクラス
  */
 class CoverageDataFilter {
+    companion object {
+        private const val TOTAL_ROW_CLASS_NAME = "Total"
+    }
+
     /**
      * 指定された条件に基づいてカバレッジデータをフィルタリングする
      */
@@ -15,7 +19,7 @@ class CoverageDataFilter {
         return when {
             targetClasses.isEmpty() && showTotal -> {
                 // Totalの行のみを返す
-                data.filter { it.className == "Total" }
+                data.filter { it.className == TOTAL_ROW_CLASS_NAME }
             }
             targetClasses.isEmpty() -> {
                 data

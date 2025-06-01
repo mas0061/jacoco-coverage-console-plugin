@@ -59,12 +59,7 @@ class CsvReportParser {
             .mapIndexed { index, line ->
                 try {
                     parseLine(line)
-                } catch (e: IllegalArgumentException) {
-                    throw IllegalArgumentException(
-                        "Failed to parse line ${index + 2} in ${csvFile.name}: ${e.message}",
-                        e,
-                    )
-                } catch (e: NumberFormatException) {
+                } catch (e: Exception) {
                     throw IllegalArgumentException(
                         "Failed to parse line ${index + 2} in ${csvFile.name}: ${e.message}",
                         e,
@@ -74,7 +69,7 @@ class CsvReportParser {
     }
 
     private fun validateHeader(headerLine: String) {
-        val headers = headerLine.split(",")
+        val headers = parseCSVLine(headerLine)
         require(headers.size == EXPECTED_COLUMN_COUNT) {
             "Invalid header format: expected $EXPECTED_COLUMN_COUNT columns, got ${headers.size}"
         }
@@ -87,7 +82,7 @@ class CsvReportParser {
     }
 
     private fun parseLine(line: String): CoverageRow {
-        val columns = line.split(",")
+        val columns = parseCSVLine(line)
         require(columns.size >= EXPECTED_COLUMN_COUNT) {
             "Invalid CSV format: expected $EXPECTED_COLUMN_COUNT columns, got ${columns.size}"
         }
@@ -108,11 +103,50 @@ class CsvReportParser {
                 methodMissed = parseIntColumn(columns[11], "METHOD_MISSED"),
                 methodCovered = parseIntColumn(columns[12], "METHOD_COVERED"),
             )
-        } catch (e: IllegalArgumentException) {
+        } catch (e: Exception) {
             throw IllegalArgumentException("Invalid CSV data format in line: $line", e)
-        } catch (e: NumberFormatException) {
-            throw IllegalArgumentException("Invalid numeric value in CSV line: $line", e)
         }
+    }
+
+    /**
+     * CSVの行をパースする。カンマで区切られた値を考慮し、クォートされた値も適切に処理する
+     */
+    private fun parseCSVLine(line: String): List<String> {
+        val result = mutableListOf<String>()
+        var current = StringBuilder()
+        var inQuotes = false
+        var i = 0
+
+        while (i < line.length) {
+            val char = line[i]
+            when {
+                char == '"' && !inQuotes -> {
+                    inQuotes = true
+                }
+                char == '"' && inQuotes -> {
+                    // Check if it's an escaped quote
+                    if (i + 1 < line.length && line[i + 1] == '"') {
+                        current.append('"')
+                        i++ // Skip the next quote
+                    } else {
+                        inQuotes = false
+                    }
+                }
+                char == ',' && !inQuotes -> {
+                    result.add(current.toString())
+                    current = StringBuilder()
+                }
+                else -> {
+                    current.append(char)
+                }
+            }
+            i++
+        }
+
+        // Add the last field
+        result.add(current.toString())
+
+        return result
     }
 
     private fun parseIntColumn(
