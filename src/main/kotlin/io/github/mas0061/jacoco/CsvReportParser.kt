@@ -76,7 +76,7 @@ class CsvReportParser {
 
         headers.forEachIndexed { index, header ->
             require(header.trim() == EXPECTED_HEADERS[index]) {
-                "Invalid header at column $index: expected '${EXPECTED_HEADERS[index]}', got '$header'"
+                "Invalid header at column ${index + 1}: expected '${EXPECTED_HEADERS[index]}', got '$header'"
             }
         }
     }
