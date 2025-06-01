@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [8, 11, 17, 21]
+
+    name: Test with Java ${{ matrix.java }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      with:
+        # Fetch full history for better analysis
+        fetch-depth: 0
+    
+    - name: Set up JDK ${{ matrix.java }}
+      uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+      with:
+        java-version: ${{ matrix.java }}
+        distribution: 'corretto'
+    
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@8379f6a1328ee0e06e2bb424dadb7b159856a326 # v4.4.0
+      with:
+        cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+    
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    
+    - name: Run quality checks and tests
+      run: ./gradlew qualityCheck test jacocoTestReport --continue
+    
+    - name: Upload test reports
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      if: always()
+      with:
+        name: test-reports-java${{ matrix.java }}
+        path: |
+          build/reports/ktlint/
+          build/reports/detekt/
+          build/reports/jacoco/
+          build/reports/tests/test/
+        retention-days: ${{ matrix.java == 17 && 30 || 7 }}
+        
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action@3a74b2957438d0b6e2e61d67b05318aa25c9e6c6 # v2.20.0
+      if: always()
+      with:
+        files: build/test-results/test/*.xml
+        check_name: "Test Results (Java ${{ matrix.java }})"
+
+    - name: Generate coverage summary
+      if: always() && matrix.java == 17
+      run: |
+        if [ -f "build/reports/jacoco/test/jacocoTestReport.xml" ]; then
+          echo "COVERAGE_REPORT_EXISTS=true" >> $GITHUB_ENV
+          # Extract coverage percentage from JaCoCo XML report
+          COVERAGE=$(grep -o 'missed="[0-9]*".*covered="[0-9]*"' build/reports/jacoco/test/jacocoTestReport.xml | head -1 | sed 's/missed="\([0-9]*\)".*covered="\([0-9]*\)"/\1 \2/' | awk '{total=$1+$2; if(total>0) print ($2*100/total); else print 0}')
+          echo "COVERAGE_PERCENTAGE=${COVERAGE}" >> $GITHUB_ENV
+        else
+          echo "COVERAGE_REPORT_EXISTS=false" >> $GITHUB_ENV
+        fi
+
+    - name: Check detekt results
+      id: detekt_check
+      if: always() && matrix.java == 17
+      run: |
+        if [ -f "build/reports/detekt/detekt.txt" ]; then
+          if grep -q "Issues found:" build/reports/detekt/detekt.txt; then
+            echo "status=❌ **detekt:** Issues found" >> $GITHUB_OUTPUT
+          else
+            echo "status=✅ **detekt:** No issues found" >> $GITHUB_OUTPUT
+          fi
+        else
+          echo "status=⚠️ **detekt:** Report not found" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Comment PR with quality results
+      if: github.event_name == 'pull_request' && always() && matrix.java == 17
+      uses: marocchino/sticky-pull-request-comment@67d0dec7b07ed060a405f9b2a64b8ab319fdd7db # v2.9.2
+      with:
+        header: quality-report
+        message: |
+          ## 🔍 Code Quality Report
+
+          ${{ steps.detekt_check.outputs.status }}
+          ✅ **ktlint:** Code style check completed
+          ${{ env.COVERAGE_REPORT_EXISTS == 'true' && format('📊 **Test Coverage:** {0}%', env.COVERAGE_PERCENTAGE) || '' }}
+
+          📁 **Artifacts uploaded:**
+          - Quality reports (ktlint, detekt)
+          ${{ env.COVERAGE_REPORT_EXISTS == 'true' && '- Test coverage reports' || '' }}
+          - Test results
