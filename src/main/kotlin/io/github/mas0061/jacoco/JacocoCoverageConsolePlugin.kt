@@ -8,12 +8,13 @@ class JacocoCoverageConsolePlugin : Plugin<Project> {
         val extension = project.extensions.create("jacocoCoverageConsole", JacocoCoverageExtension::class.java)
 
         // デフォルトのCSVレポートパスを設定
-        extension.csvReportPath.convention(
-            project.file("build/reports/jacoco/test/jacocoTestReport.csv"),
-        )
-
-        project.tasks.register("jacocoCoverageConsole", JacocoCoverageTask::class.java).configure {
-            this.extension = extension
+        project.afterEvaluate {
+            if (extension.csvReportPath == null) {
+                extension.csvReportPath = project.file("build/reports/jacoco/test/jacocoTestReport.csv")
+            }
         }
+
+        val task = project.tasks.create("jacocoCoverageConsole", JacocoCoverageTask::class.java)
+        task.extension = extension
     }
 }

@@ -11,21 +11,15 @@ class JacocoCoverageExtensionTest {
         // エクステンションクラスが存在し、必要なメソッドを持っていることを確認
         val extensionClass = JacocoCoverageExtension::class.java
 
-        // 必要なメソッドが存在することを確認
-        val csvReportPathMethod =
-            extensionClass.getDeclaredMethods()
-                .find { it.name.contains("csvReportPath") || it.name == "getCsvReportPath" }
-        assertNotNull("csvReportPath getter should exist", csvReportPathMethod)
+        // 必要なフィールドが存在することを確認
+        val csvReportPathField = extensionClass.getDeclaredField("csvReportPath")
+        assertNotNull("csvReportPath field should exist", csvReportPathField)
 
-        val showTotalMethod =
-            extensionClass.getDeclaredMethods()
-                .find { it.name.contains("showTotal") || it.name == "getShowTotal" }
-        assertNotNull("showTotal getter should exist", showTotalMethod)
+        val showTotalField = extensionClass.getDeclaredField("showTotal")
+        assertNotNull("showTotal field should exist", showTotalField)
 
-        val targetClassesMethod =
-            extensionClass.getDeclaredMethods()
-                .find { it.name.contains("targetClasses") || it.name == "getTargetClasses" }
-        assertNotNull("targetClasses getter should exist", targetClassesMethod)
+        val targetClassesField = extensionClass.getDeclaredField("targetClasses")
+        assertNotNull("targetClasses field should exist", targetClassesField)
     }
 
     @Test

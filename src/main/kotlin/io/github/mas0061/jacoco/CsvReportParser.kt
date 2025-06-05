@@ -134,7 +134,7 @@ class CsvReportParser {
                 }
                 char == ',' && !inQuotes -> {
                     result.add(current.toString())
-                    current.clear()
+                    current.setLength(0)
                 }
                 else -> {
                     current.append(char)

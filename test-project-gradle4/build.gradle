@@ -1,0 +1,51 @@
+plugins {
+    id 'java'
+    id 'jacoco'
+    id 'io.github.mas0061.jacoco-coverage-console' version '0.0.3'
+}
+
+group = 'com.example'
+version = '1.0.0'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.mockito:mockito-core:4.11.0'
+}
+
+// JaCoCo設定
+jacoco {
+    toolVersion = '0.8.8'
+}
+
+jacocoTestReport {
+    dependsOn test
+    
+    reports {
+        xml.enabled = true
+        html.enabled = true
+        csv.enabled = true // CSVレポートを有効化
+    }
+    
+    finalizedBy 'jacocoCoverageConsole' // テストレポート生成後に自動実行
+}
+
+test {
+    useJUnit()
+    finalizedBy jacocoTestReport
+}
+
+// プラグイン設定
+jacocoCoverageConsole {
+    // デフォルトパスを使用（build/reports/jacoco/test/jacocoTestReport.csv）
+    showTotal = true
+    // 特定のパッケージのみ表示
+    targetClasses = ['com.example.service.*', 'com.example.model.*']
+}

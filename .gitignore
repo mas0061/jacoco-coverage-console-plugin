@@ -87,3 +87,4 @@ gradle-app.setting
 # Misc
 *.class
 .mise.toml
+.claude/
