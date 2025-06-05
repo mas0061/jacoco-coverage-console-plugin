@@ -20,7 +20,7 @@ import javax.inject.Inject
  * }
  * ```
  */
-abstract class JacocoCoverageExtension
+open class JacocoCoverageExtension
     @Inject
     constructor(private val objects: ObjectFactory) {
         /**
@@ -28,7 +28,7 @@ abstract class JacocoCoverageExtension
          *
          * 指定しない場合は、デフォルトパス `build/reports/jacoco/test/jacocoTestReport.csv` が使用されます。
          */
-        abstract val csvReportPath: Property<File>
+        val csvReportPath: Property<File> = objects.property(File::class.java)
 
         /**
          * 全体のカバレッジ（Total行）を表示するかどうか
@@ -38,7 +38,7 @@ abstract class JacocoCoverageExtension
          * - true: Total行を表示
          * - false: 個別のクラス/パッケージのみ表示
          */
-        abstract val showTotal: Property<Boolean>
+        val showTotal: Property<Boolean> = objects.property(Boolean::class.java)
 
         /**
          * 特定のクラス/パッケージのカバレッジを表示する際のターゲット

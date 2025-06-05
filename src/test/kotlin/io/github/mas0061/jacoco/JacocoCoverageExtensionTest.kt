@@ -33,10 +33,11 @@ class JacocoCoverageExtensionTest {
         // エクステンションクラスが適切な構造を持っていることを確認
         val extensionClass = JacocoCoverageExtension::class.java
 
-        // abstractクラスであることを確認
+        // openクラスであることを確認（Gradle 4との互換性のためabstractからopenに変更）
         assertTrue(
-            "Extension should be abstract",
-            java.lang.reflect.Modifier.isAbstract(extensionClass.modifiers),
+            "Extension should be open class",
+            !java.lang.reflect.Modifier.isAbstract(extensionClass.modifiers) &&
+                !java.lang.reflect.Modifier.isFinal(extensionClass.modifiers),
         )
 
         // JacocoCoverageExtensionクラスが存在することを確認

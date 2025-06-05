@@ -1,7 +1,7 @@
 plugins {
     id("java")
     id("jacoco")
-    id("io.github.mas0061.jacoco-coverage-console") version "0.0.1"
+    id("io.github.mas0061.jacoco-coverage-console") version "0.0.2"
 }
 
 group = "com.example"
