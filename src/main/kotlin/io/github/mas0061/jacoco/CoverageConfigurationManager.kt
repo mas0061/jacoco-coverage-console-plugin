@@ -17,7 +17,7 @@ class CoverageConfigurationManager(
     fun determineCsvFile(csvPathOption: String): File {
         return when {
             csvPathOption.isNotEmpty() -> File(csvPathOption)
-            extension.csvReportPath.isPresent -> extension.csvReportPath.get()
+            extension.csvReportPath != null -> extension.csvReportPath!!
             else -> project.file("build/reports/jacoco/test/jacocoTestReport.csv")
         }
     }
@@ -34,7 +34,7 @@ class CoverageConfigurationManager(
                 emptyList()
             }
 
-        val fromExtension = extension.targetClasses.getOrElse(emptyList())
+        val fromExtension = extension.targetClasses
 
         return fromOption.ifEmpty { fromExtension }
     }
@@ -43,6 +43,6 @@ class CoverageConfigurationManager(
      * 全体カバレッジの表示設定を取得する
      */
     fun shouldShowTotal(): Boolean {
-        return extension.showTotal.getOrElse(true)
+        return extension.showTotal
     }
 }

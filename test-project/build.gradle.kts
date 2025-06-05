@@ -1,7 +1,7 @@
 plugins {
     id("java")
     id("jacoco")
-    id("io.github.mas0061.jacoco-coverage-console") version "0.0.2"
+    id("io.github.mas0061.jacoco-coverage-console") version "0.0.3"
 }
 
 group = "com.example"
@@ -46,7 +46,7 @@ tasks.test {
 // プラグイン設定
 jacocoCoverageConsole {
     // デフォルトパスを使用（build/reports/jacoco/test/jacocoTestReport.csv）
-    showTotal.set(true)
+    showTotal = true
     // 特定のパッケージのみ表示
-    targetClasses.set(listOf("com.example.service.*", "com.example.model.*"))
+    targetClasses = listOf("com.example.service.*", "com.example.model.*")
 }
