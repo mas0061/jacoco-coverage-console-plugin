@@ -14,6 +14,17 @@ A Gradle plugin that parses JaCoCo CSV reports and displays coverage information
 - 🔧 Compatible with Gradle 4-8 and Java 8+
 - 🔍 Wildcard filtering for packages and classes
 
+## 📋 Compatibility
+
+| Gradle Version | Build Script | Status |
+|----------------|--------------|--------|
+| 4.x | Groovy DSL | ✅ Supported |
+| 4.x | Kotlin DSL | ❌ Not supported* |
+| 5.x - 8.x | Kotlin DSL | ✅ Supported |
+| 5.x - 8.x | Groovy DSL | ✅ Supported |
+
+*For Gradle 4 users: Use Groovy DSL instead of Kotlin DSL due to Kotlin version compatibility issues.
+
 ## 🚀 Quick Start
 
 ### Installation
@@ -21,14 +32,14 @@ A Gradle plugin that parses JaCoCo CSV reports and displays coverage information
 **Kotlin DSL (build.gradle.kts):**
 ```kotlin
 plugins {
-    id("io.github.mas0061.jacoco-coverage-console") version "0.0.1"
+    id("io.github.mas0061.jacoco-coverage-console") version "0.0.3"
 }
 ```
 
 **Groovy DSL (build.gradle):**
 ```groovy
 plugins {
-    id 'io.github.mas0061.jacoco-coverage-console' version '0.0.1'
+    id 'io.github.mas0061.jacoco-coverage-console' version '0.0.3'
 }
 ```
 
@@ -54,14 +65,16 @@ com.example.controller.UserController                       88.75           82.4
 
 ## 🔧 Configuration
 
+> **Note**: Starting from v0.0.3, the configuration syntax uses direct assignment (`=`) instead of the `.set()` method for simpler Gradle 4 compatibility.
+
 ### Extension Configuration
 
 **Kotlin DSL (build.gradle.kts):**
 ```kotlin
 jacocoCoverageConsole {
-    csvReportPath.set(file("build/reports/jacoco/test/jacocoTestReport.csv"))
-    showTotal.set(true)
-    targetClasses.set(listOf("com.example.service.*", "com.example.controller.*"))
+    csvReportPath = file("build/reports/jacoco/test/jacocoTestReport.csv")
+    showTotal = true
+    targetClasses = listOf("com.example.service.*", "com.example.controller.*")
 }
 ```
 
@@ -87,10 +100,21 @@ jacocoCoverageConsole {
 ```
 
 ### JaCoCo CSV Report Setup
+
+**Kotlin DSL (Gradle 5+):**
 ```kotlin
 tasks.jacocoTestReport {
     reports {
         csv.required.set(true)
+    }
+}
+```
+
+**Groovy DSL (All Gradle versions):**
+```groovy
+jacocoTestReport {
+    reports {
+        csv.enabled = true
     }
 }
 ```
