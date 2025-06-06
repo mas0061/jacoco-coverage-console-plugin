@@ -88,6 +88,8 @@ jacocoCoverageConsole {
 ```
 
 ### Command Line Options
+
+#### Gradle 5+ (Using --options)
 ```bash
 # Specific classes
 ./gradlew jacocoCoverageConsole --classes=com.example.service.*
@@ -98,6 +100,20 @@ jacocoCoverageConsole {
 # Multiple targets  
 ./gradlew jacocoCoverageConsole --classes=com.example.service.*,com.example.controller.UserController
 ```
+
+#### Gradle 4 (Using -P project properties)
+```bash
+# Specific classes
+./gradlew jacocoCoverageConsole -PjacocoClasses=com.example.service.*
+
+# Custom CSV file
+./gradlew jacocoCoverageConsole -PjacocoCsvPath=custom/path/report.csv
+
+# Multiple targets  
+./gradlew jacocoCoverageConsole -PjacocoClasses=com.example.service.*,com.example.controller.UserController
+```
+
+> **Note**: Gradle 4 does not support the `@Option` annotation, so project properties must be used instead.
 
 ### JaCoCo CSV Report Setup
 
