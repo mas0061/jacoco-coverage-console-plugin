@@ -179,7 +179,6 @@ jacocoTestReport {
 
 - **[Contributing Guide](CONTRIBUTING.md)** - Development setup and contribution guidelines
 - **[Code Quality](CODE_QUALITY.md)** - Quality standards and tools
-- **[Publishing Guide](PUBLISHING.md)** - For maintainers
 
 ## 🤝 Contributing
 
