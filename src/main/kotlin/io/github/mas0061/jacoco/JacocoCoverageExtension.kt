@@ -10,18 +10,28 @@ import java.io.File
  * 使用例:
  * ```kotlin
  * jacocoCoverageConsole {
- *     csvReportPath = file("custom/path/jacoco.csv")
- *     showTotal = false
+ *     xmlReportPath = file("custom/path/jacoco.xml")
+ *     showTotal = true
+ *     showPackageSummary = true
  *     targetClasses = listOf("com.example.service.*", "com.example.model.User")
  * }
  * ```
  */
 open class JacocoCoverageExtension {
     /**
-     * JaCoCoのCSVレポートファイルのパス
+     * JaCoCoのXMLレポートファイルのパス
+     *
+     * 指定しない場合は、デフォルトパス `build/reports/jacoco/test/jacocoTestReport.xml` が使用されます。
+     */
+    var xmlReportPath: File? = null
+
+    /**
+     * JaCoCoのCSVレポートファイルのパス (非推奨)
      *
      * 指定しない場合は、デフォルトパス `build/reports/jacoco/test/jacocoTestReport.csv` が使用されます。
+     * @deprecated XMLレポートの使用を推奨します
      */
+    @Deprecated("Use xmlReportPath instead for better functionality including project totals")
     var csvReportPath: File? = null
 
     /**
@@ -33,6 +43,16 @@ open class JacocoCoverageExtension {
      * - false: 個別のクラス/パッケージのみ表示
      */
     var showTotal: Boolean = true
+
+    /**
+     * パッケージサマリーを表示するかどうか
+     *
+     * デフォルト値: true
+     *
+     * - true: パッケージレベルのカバレッジサマリーを表示
+     * - false: クラスレベルの詳細のみ表示
+     */
+    var showPackageSummary: Boolean = true
 
     /**
      * 特定のクラス/パッケージのカバレッジを表示する際のターゲット
@@ -55,15 +75,17 @@ open class JacocoCoverageExtension {
     var targetClasses: List<String> = emptyList()
 
     /**
-     * CSVレポートファイルの設定を検証する
+     * レポートファイルの設定を検証する
      */
     internal fun validateConfiguration() {
-        csvReportPath?.let { file ->
+        // XMLレポートファイルを優先してチェック
+        val reportFile = xmlReportPath ?: csvReportPath
+        reportFile?.let { file ->
             require(file.exists()) {
-                "Specified CSV report file does not exist: ${file.absolutePath}"
+                "Specified report file does not exist: ${file.absolutePath}"
             }
             require(file.canRead()) {
-                "Specified CSV report file is not readable: ${file.absolutePath}"
+                "Specified report file is not readable: ${file.absolutePath}"
             }
         }
 
@@ -73,5 +95,13 @@ open class JacocoCoverageExtension {
                 "Target class/package name cannot be blank"
             }
         }
+    }
+
+    /**
+     * 使用するレポート形式がXMLかどうかを判定
+     * CSVが明示的に設定されている場合のみCSVを使用し、それ以外はXMLを使用
+     */
+    internal fun isUsingXmlReport(): Boolean {
+        return csvReportPath == null
     }
 }

@@ -9,7 +9,8 @@ import java.io.IOException
 open class JacocoCoverageTask : DefaultTask() {
     init {
         group = "reporting"
-        description = "Displays JaCoCo coverage reports in console table format"
+        description = "Displays JaCoCo coverage reports in console table format with " +
+            "project totals and package summaries"
     }
 
     @Internal
@@ -20,32 +21,29 @@ open class JacocoCoverageTask : DefaultTask() {
     var classesOption: String = ""
 
     @Internal
-    @Option(option = "csv-path", description = "Path to JaCoCo CSV report file")
+    @Option(option = "xml-path", description = "Path to JaCoCo XML report file")
+    var xmlPathOption: String = ""
+
+    @Internal
+    @Option(option = "csv-path", description = "Path to JaCoCo CSV report file (deprecated, use xml-path)")
     var csvPathOption: String = ""
 
     // 依存関係
     private val configManager by lazy { CoverageConfigurationManager(project, extension) }
     private val dataFilter = CoverageDataFilter()
-    private val reportRenderer = CoverageReportRenderer()
+    private val csvReportRenderer = CoverageReportRenderer()
+    private val xmlReportRenderer = XmlCoverageReportRenderer()
 
     @TaskAction
     fun showCoverage() {
         try {
-            val csvFile = configManager.determineCsvFile(csvPathOption)
-            val parser = CsvReportParser()
-            val coverageData = parser.parse(csvFile)
-
             val targetClasses = configManager.determineTargetClasses(classesOption)
-            val showTotal = configManager.shouldShowTotal()
 
-            val filteredData = dataFilter.filterCoverageData(coverageData, targetClasses, showTotal)
-
-            if (filteredData.isEmpty()) {
-                println("No coverage data found for the specified criteria.")
-                return
+            if (shouldUseXmlReport()) {
+                renderXmlReport(targetClasses)
+            } else {
+                renderCsvReport(targetClasses)
             }
-
-            reportRenderer.renderCoverageTable(filteredData)
         } catch (e: IOException) {
             logger.error("Failed to read coverage report file: ${e.message}", e)
             throw e
@@ -53,5 +51,55 @@ open class JacocoCoverageTask : DefaultTask() {
             logger.error("Invalid coverage report: ${e.message}", e)
             throw e
         }
+    }
+
+    private fun shouldUseXmlReport(): Boolean {
+        val csvExplicitlySpecified =
+            csvPathOption.isNotEmpty() ||
+                project.hasProperty("jacocoCsvPath") ||
+                extension.csvReportPath != null
+
+        return xmlPathOption.isNotEmpty() ||
+            project.hasProperty("jacocoXmlPath") ||
+            !csvExplicitlySpecified
+    }
+
+    private fun renderXmlReport(targetClasses: List<String>) {
+        val xmlFile = configManager.determineXmlFile(xmlPathOption)
+        val parser = XmlReportParser()
+        val report = parser.parse(xmlFile)
+
+        if (report.packages.isEmpty() || report.getAllClasses().isEmpty()) {
+            println("No coverage data found in the XML report.")
+            return
+        }
+
+        xmlReportRenderer.renderCoverageReport(
+            report = report,
+            targetClasses = targetClasses,
+            showTotal = extension.showTotal,
+            showPackageSummary = extension.showPackageSummary,
+        )
+    }
+
+    private fun renderCsvReport(targetClasses: List<String>) {
+        logger.warn(
+            "CSV reports are deprecated. Consider using XML reports for " +
+                "better functionality including project totals.",
+        )
+
+        val csvFile = configManager.determineCsvFile(csvPathOption)
+        val parser = CsvReportParser()
+        val coverageData = parser.parse(csvFile)
+
+        val showTotal = configManager.shouldShowTotal()
+        val filteredData = dataFilter.filterCoverageData(coverageData, targetClasses, showTotal)
+
+        if (filteredData.isEmpty()) {
+            println("No coverage data found for the specified criteria.")
+            return
+        }
+
+        csvReportRenderer.renderCoverageTable(filteredData)
     }
 }

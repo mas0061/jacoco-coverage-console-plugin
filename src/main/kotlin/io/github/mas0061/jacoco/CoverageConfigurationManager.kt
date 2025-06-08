@@ -11,15 +11,33 @@ class CoverageConfigurationManager(
     private val extension: JacocoCoverageExtension,
 ) {
     /**
-     * CSVファイルのパスを決定する
+     * XMLファイルのパスを決定する
      * 優先順位: 1. コマンドラインオプション 2. プロジェクトプロパティ 3. エクステンション設定 4. デフォルトパス
      */
+    fun determineXmlFile(xmlPathOption: String): File {
+        return when {
+            // 1. コマンドラインオプション (Gradle 5+)
+            xmlPathOption.isNotEmpty() -> project.file(xmlPathOption)
+            // 2. プロジェクトプロパティ (Gradle 4との互換性のため)
+            project.hasProperty("jacocoXmlPath") -> project.file(project.property("jacocoXmlPath").toString())
+            // 3. エクステンション設定
+            extension.xmlReportPath != null -> extension.xmlReportPath!!
+            // 4. デフォルトパス
+            else -> project.file("build/reports/jacoco/test/jacocoTestReport.xml")
+        }
+    }
+
+    /**
+     * CSVファイルのパスを決定する (非推奨)
+     * 優先順位: 1. コマンドラインオプション 2. プロジェクトプロパティ 3. エクステンション設定 4. デフォルトパス
+     */
+    @Deprecated("Use determineXmlFile instead")
     fun determineCsvFile(csvPathOption: String): File {
         return when {
             // 1. コマンドラインオプション (Gradle 5+)
-            csvPathOption.isNotEmpty() -> File(csvPathOption)
+            csvPathOption.isNotEmpty() -> project.file(csvPathOption)
             // 2. プロジェクトプロパティ (Gradle 4との互換性のため)
-            project.hasProperty("jacocoCsvPath") -> File(project.property("jacocoCsvPath").toString())
+            project.hasProperty("jacocoCsvPath") -> project.file(project.property("jacocoCsvPath").toString())
             // 3. エクステンション設定
             extension.csvReportPath != null -> extension.csvReportPath!!
             // 4. デフォルトパス
