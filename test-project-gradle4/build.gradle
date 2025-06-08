@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'jacoco'
-    id 'io.github.mas0061.jacoco-coverage-console' version '0.0.3'
+    id 'io.github.mas0061.jacoco-coverage-console' version '1.0.0'
 }
 
 group = 'com.example'
@@ -31,7 +31,6 @@ jacocoTestReport {
     reports {
         xml.enabled = true
         html.enabled = true
-        csv.enabled = true // CSVレポートを有効化
     }
     
     finalizedBy 'jacocoCoverageConsole' // テストレポート生成後に自動実行
@@ -44,7 +43,6 @@ test {
 
 // プラグイン設定
 jacocoCoverageConsole {
-    // デフォルトパスを使用（build/reports/jacoco/test/jacocoTestReport.csv）
     showTotal = true
     // 特定のパッケージのみ表示
     targetClasses = ['com.example.service.*', 'com.example.model.*']

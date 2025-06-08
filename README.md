@@ -4,13 +4,15 @@
 [![CI](https://github.com/mas0061/jacoco-coverage-console-plugin/workflows/CI/badge.svg)](https://github.com/mas0061/jacoco-coverage-console-plugin/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A Gradle plugin that outputs AI-readable JaCoCo coverage reports to the console, optimized for AI-assisted development workflows.
+A Gradle plugin that outputs AI-readable JaCoCo coverage reports to the console with project totals and package summaries, optimized for AI-assisted development workflows.
 
 ## 🎯 Why This Plugin?
 
 This plugin was created for AI-assisted development workflows, providing coverage information in a clean, structured format that both developers and AI tools can easily read and understand.
 
 **What makes it unique:**
+- **Project Totals**: See overall project coverage at a glance
+- **Package Summaries**: Hierarchical view with package-level aggregation
 - **Granular Filtering**: Focus on specific classes or packages instead of just total coverage
 - **AI-Optimized Output**: Structured tabular format that AI assistants can parse alongside your code
 - **Wildcard Support**: Use patterns like `com.example.service.*` to track multiple related classes
@@ -18,11 +20,12 @@ This plugin was created for AI-assisted development workflows, providing coverag
 
 ## ✨ Features
 
-- 📊 Parse JaCoCo CSV reports with Instruction/Branch coverage display
+- 📊 Parse JaCoCo XML reports with project totals and package summaries
 - 🎯 Filter by specific classes, packages, or use wildcards
 - 🤖 Clean console output optimized for both humans and AI
 - ⚙️ Configure via build.gradle or command-line options
 - 🔧 Compatible with Gradle 4-8 and Java 8+
+- 📈 Display hierarchical coverage: Project → Package → Class
 
 ## 📋 Compatibility
 
@@ -42,35 +45,38 @@ This plugin was created for AI-assisted development workflows, providing coverag
 **Kotlin DSL (build.gradle.kts):**
 ```kotlin
 plugins {
-    id("io.github.mas0061.jacoco-coverage-console") version "0.0.3"
+    id("io.github.mas0061.jacoco-coverage-console") version "1.0.0"
 }
 ```
 
 **Groovy DSL (build.gradle):**
 ```groovy
 plugins {
-    id 'io.github.mas0061.jacoco-coverage-console' version '0.0.3'
+    id 'io.github.mas0061.jacoco-coverage-console' version '1.0.0'
 }
 ```
 
 ### Basic Usage
 ```bash
-# 1. Ensure JaCoCo CSV reports are enabled
+# 1. Ensure JaCoCo XML reports are enabled (default)
 # 2. Run tests with coverage
 ./gradlew test jacocoTestReport jacocoCoverageConsole
 ```
 
 ### Sample Output
 ```
-================================================================================
+==================================================================================
 JaCoCo Coverage Report
-================================================================================
+==================================================================================
 Class/Package                                      Instruction (%)      Branch (%)
---------------------------------------------------------------------------------
-TOTAL                                                        85.50           78.25
-com.example.service.UserService                             92.30           85.60
-com.example.controller.UserController                       88.75           82.40
---------------------------------------------------------------------------------
+----------------------------------------------------------------------------------
+PROJECT TOTAL                                                85.50           78.25
+com.example.service (package)                               90.20           82.10
+com.example.controller (package)                            88.75           82.40
+  com.example.service.UserService                           92.30           85.60
+  com.example.service.UserRepository                        88.10           78.60
+  com.example.controller.UserController                     88.75           82.40
+----------------------------------------------------------------------------------
 ```
 
 ## 💡 Use Cases
@@ -90,20 +96,20 @@ com.example.controller.UserController                       88.75           82.4
 ### AI-Assisted Workflow
 1. Write code with AI assistance
 2. Run coverage for the specific class/package
-3. AI reads the output and suggests which tests to add
-4. Repeat until desired coverage is achieved
+3. AI reads the hierarchical output (project → package → class) and suggests which tests to add
+4. Monitor package-level progress alongside individual class coverage
+5. Repeat until desired coverage is achieved
 
 ## 🔧 Configuration
-
-> **Note**: Starting from v0.0.3, the configuration syntax uses direct assignment (`=`) instead of the `.set()` method for simpler Gradle 4 compatibility.
 
 ### Extension Configuration
 
 **Kotlin DSL (build.gradle.kts):**
 ```kotlin
 jacocoCoverageConsole {
-    csvReportPath = file("build/reports/jacoco/test/jacocoTestReport.csv")
-    showTotal = true
+    xmlReportPath = file("build/reports/jacoco/test/jacocoTestReport.xml")
+    showTotal = true                    // Show PROJECT TOTAL row (default: true)
+    showPackageSummary = true          // Show package-level summaries (default: true)
     targetClasses = listOf("com.example.service.*", "com.example.controller.*")
 }
 ```
@@ -111,11 +117,22 @@ jacocoCoverageConsole {
 **Groovy DSL (build.gradle):**
 ```groovy
 jacocoCoverageConsole {
-    csvReportPath = file('build/reports/jacoco/test/jacocoTestReport.csv')
-    showTotal = true
+    xmlReportPath = file('build/reports/jacoco/test/jacocoTestReport.xml')
+    showTotal = true                    // Show PROJECT TOTAL row (default: true)
+    showPackageSummary = true          // Show package-level summaries (default: true)
     targetClasses = ['com.example.service.*', 'com.example.controller.*']
 }
 ```
+
+### Configuration Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `xmlReportPath` | File | Auto-detected | Path to JaCoCo XML report file |
+| `csvReportPath` | File | Auto-detected | Path to JaCoCo CSV report file (deprecated) |
+| `showTotal` | Boolean | `true` | Display PROJECT TOTAL coverage |
+| `showPackageSummary` | Boolean | `true` | Display package-level summaries |
+| `targetClasses` | List<String> | `[]` | Filter specific classes/packages |
 
 ### Command Line Options
 
@@ -124,8 +141,8 @@ jacocoCoverageConsole {
 # Specific classes
 ./gradlew jacocoCoverageConsole --classes=com.example.service.*
 
-# Custom CSV file
-./gradlew jacocoCoverageConsole --csv-path=custom/path/report.csv
+# Custom XML file
+./gradlew jacocoCoverageConsole --xml-path=custom/path/report.xml
 
 # Multiple targets  
 ./gradlew jacocoCoverageConsole --classes=com.example.service.*,com.example.controller.UserController
@@ -136,8 +153,8 @@ jacocoCoverageConsole {
 # Specific classes
 ./gradlew jacocoCoverageConsole -PjacocoClasses=com.example.service.*
 
-# Custom CSV file
-./gradlew jacocoCoverageConsole -PjacocoCsvPath=custom/path/report.csv
+# Custom XML file
+./gradlew jacocoCoverageConsole -PjacocoXmlPath=custom/path/report.xml
 
 # Multiple targets  
 ./gradlew jacocoCoverageConsole -PjacocoClasses=com.example.service.*,com.example.controller.UserController
@@ -145,13 +162,16 @@ jacocoCoverageConsole {
 
 > **Note**: Gradle 4 does not support the `@Option` annotation, so project properties must be used instead.
 
-### JaCoCo CSV Report Setup
+### JaCoCo XML Report Setup
+
+**XML reports are enabled by default in JaCoCo**, but you can explicitly configure them:
 
 **Kotlin DSL (Gradle 5+):**
 ```kotlin
 tasks.jacocoTestReport {
     reports {
-        csv.required.set(true)
+        xml.required.set(true)
+        csv.required.set(false) // Optional: disable CSV if not needed
     }
 }
 ```
@@ -160,7 +180,8 @@ tasks.jacocoTestReport {
 ```groovy
 jacocoTestReport {
     reports {
-        csv.enabled = true
+        xml.enabled = true
+        csv.enabled = false // Optional: disable CSV if not needed
     }
 }
 ```
@@ -173,7 +194,6 @@ jacocoTestReport {
 ./gradlew qualityCheck   # Run all quality checks
 ./gradlew build          # Full build with tests
 ```
-
 
 ## 📚 Documentation
 

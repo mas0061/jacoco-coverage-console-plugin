@@ -20,19 +20,80 @@ class JacocoCoverageConsolePluginTest {
     private lateinit var settingsFile: File
     private lateinit var csvReportFile: File
 
+    companion object {
+        private const val TEST_XML_CONTENT = """<?xml version="1.0" encoding="UTF-8"?>
+<report name="test-project">
+    <counter type="INSTRUCTION" missed="30" covered="170"/>
+    <counter type="BRANCH" missed="13" covered="27"/>
+    <counter type="LINE" missed="9" covered="31"/>
+    <counter type="COMPLEXITY" missed="6" covered="14"/>
+    <counter type="METHOD" missed="3" covered="7"/>
+    <counter type="CLASS" missed="0" covered="2"/>
+    
+    <package name="com.example">
+        <counter type="INSTRUCTION" missed="10" covered="90"/>
+        <counter type="BRANCH" missed="5" covered="15"/>
+        <counter type="LINE" missed="3" covered="17"/>
+        <counter type="COMPLEXITY" missed="2" covered="8"/>
+        <counter type="METHOD" missed="1" covered="4"/>
+        <counter type="CLASS" missed="0" covered="1"/>
+        
+        <class name="com/example/TestClass" sourcefilename="TestClass.java">
+            <counter type="INSTRUCTION" missed="10" covered="90"/>
+            <counter type="BRANCH" missed="5" covered="15"/>
+            <counter type="LINE" missed="3" covered="17"/>
+            <counter type="COMPLEXITY" missed="2" covered="8"/>
+            <counter type="METHOD" missed="1" covered="4"/>
+            <counter type="CLASS" missed="0" covered="1"/>
+        </class>
+    </package>
+    
+    <package name="com.example.service">
+        <counter type="INSTRUCTION" missed="20" covered="80"/>
+        <counter type="BRANCH" missed="8" covered="12"/>
+        <counter type="LINE" missed="6" covered="14"/>
+        <counter type="COMPLEXITY" missed="4" covered="6"/>
+        <counter type="METHOD" missed="2" covered="3"/>
+        <counter type="CLASS" missed="0" covered="1"/>
+        
+        <class name="com/example/service/UserService" sourcefilename="UserService.java">
+            <counter type="INSTRUCTION" missed="20" covered="80"/>
+            <counter type="BRANCH" missed="8" covered="12"/>
+            <counter type="LINE" missed="6" covered="14"/>
+            <counter type="COMPLEXITY" missed="4" covered="6"/>
+            <counter type="METHOD" missed="2" covered="3"/>
+            <counter type="CLASS" missed="0" covered="1"/>
+        </class>
+    </package>
+</report>"""
+    }
+
     @Before
     fun setUp() {
+        setupProjectFiles()
+        setupReportFiles()
+    }
+
+    private fun setupProjectFiles() {
         buildFile = tempFolder.newFile("build.gradle")
         settingsFile = tempFolder.newFile("settings.gradle")
-
-        // settings.gradle を作成
         settingsFile.writeText("rootProject.name = 'test-project'")
+    }
 
-        // JaCoCoレポート用ディレクトリを作成
+    private fun setupReportFiles() {
         val reportsDir = tempFolder.newFolder("build", "reports", "jacoco", "test")
         csvReportFile = File(reportsDir, "jacocoTestReport.csv")
 
-        // テスト用CSVファイルを作成
+        createXmlReportFile(reportsDir)
+        createCsvReportFile()
+    }
+
+    private fun createXmlReportFile(reportsDir: File) {
+        val xmlReportFile = File(reportsDir, "jacocoTestReport.xml")
+        xmlReportFile.writeText(TEST_XML_CONTENT)
+    }
+
+    private fun createCsvReportFile() {
         csvReportFile.writeText(
             """
             GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
