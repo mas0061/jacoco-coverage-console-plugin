@@ -4,7 +4,7 @@ plugins {
     `maven-publish`
     jacoco
     id("com.gradle.plugin-publish") version "2.0.0"
-    id("org.jlleitschuh.gradle.ktlint") version "13.0.0"
+    id("org.jlleitschuh.gradle.ktlint") version "13.1.0"
     id("io.gitlab.arturbosch.detekt") version "1.23.8"
 }
 
@@ -24,7 +24,7 @@ dependencies {
     implementation(gradleApi())
     implementation(localGroovy())
     testImplementation("junit:junit:4.13.2")
-    testImplementation("org.mockito:mockito-core:5.18.0")
+    testImplementation("org.mockito:mockito-core:5.20.0")
     testImplementation(gradleTestKit())
 }
 
