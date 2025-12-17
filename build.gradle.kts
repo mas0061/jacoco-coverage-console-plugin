@@ -24,7 +24,7 @@ dependencies {
     implementation(gradleApi())
     implementation(localGroovy())
     testImplementation("junit:junit:4.13.2")
-    testImplementation("org.mockito:mockito-core:5.20.0")
+    testImplementation("org.mockito:mockito-core:5.21.0")
     testImplementation(gradleTestKit())
 }
 
